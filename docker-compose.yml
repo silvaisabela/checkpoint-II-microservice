@@ -1,0 +1,62 @@
+version: "3"
+
+services:
+  emaildb:
+    image: mongo:5.0
+    container_name: emaildb
+    volumes:
+      - ~/Downloads/microservices/email-volume:/data/db
+    environment:
+      - MONGO_INITDB_ROOT_USERNAME=email-service
+      - MONGO_INITDB_ROOT_PASSWORD=secret
+    networks:
+      email:
+
+  emailsvc:
+    build: ./email
+    container_name: emailsvc
+    ports:
+      - 8080:8080
+    depends_on:
+      - "emaildb"
+    networks:
+      main:
+      email:
+
+  produtosdb:
+    image: mongo:5.0
+    container_name: produtosdb
+    volumes:
+      - ~/Downloads/microservices/produtos-volume:/data/db
+    environment:
+      - MONGO_INITDB_ROOT_USERNAME=produtos-service
+      - MONGO_INITDB_ROOT_PASSWORD=secret
+    networks:
+      produtos:
+
+  produtossvc:
+    build: ./produtos
+    container_name: produtossvc
+    ports:
+      - 8081:3001
+    depends_on:
+      - "produtosdb"
+    networks:
+      main:
+      produtos:
+
+  website:
+    build: ./web-site
+    container_name: website
+    ports:
+      - 8082:3000
+    depends_on:
+      - "produtossvc"
+      - "emailsvc"
+    networks:
+      main:
+
+networks:
+  main:
+  email:
+  produtos:
